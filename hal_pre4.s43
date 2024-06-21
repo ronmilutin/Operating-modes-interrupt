@@ -1,0 +1,59 @@
+#include  "bsp_pre4.h"
+;---------------------------------------------------------------           
+Debounce      MACRO      cycles 
+              LOCAL      L
+              mov.w      cycles,R15     
+L             dec.w      R15                     
+              jnz        L
+              ENDM                   
+;--------------------------------------------------------------- 
+
+              MODULE     HAL
+              PUBLIC     SysConfig,PRINTLeds,CLEARLeds,PORT2_ISR
+              ;PUBLIC     PORT21_ISR,PORT22_ISR   
+              ;EXTERN     PullUp,PullDown,Func1,Func2,Func3,State,Main
+              EXTERN     GPIOconfig,State,state0
+              
+;----------------------------------------------------------------
+              RSEG CODE
+;----------------------------------------------------------------
+SysConfig    call   #GPIOconfig
+             ret
+;----------------------------------------------------------------
+PRINTLeds    pop  R4
+             pop  R5
+             
+             mov.b R5,ledPORT
+             
+             push R4
+             ret
+;----------------------------------------------------------------
+CLEARLeds    clr.b ledPORT
+             ret
+;----------------------------------------------------------------
+PORT2_ISR      Debounce #debounce_time         ; configures buttons
+               bit.b    #0x01, PB_IFG   ; looks for flags, checks the bit of input
+               jnz      P2_0
+               bit.b    #0x02, PB_IFG
+               jnz      P2_1
+               bit.b    #0x04, PB_IFG
+               jnz      P2_2 
+               reti
+           
+P2_0          mov    #1,State       
+              jmp    exitLPM0
+P2_1          mov    #2,State       
+              jmp    exitLPM0                
+P2_2          mov    #3,State       
+              jmp    exitLPM0
+
+exitLPM0     bic    #CPUOFF,0(SP)        ; Exit LMP0
+             bic.b  #0xff,PB_IFG
+             call   #state0
+             reti
+              
+;-------------------------------------------------------------------------------           
+               ENDMOD      
+               END
+;-------------------------------------------------------------------------------
+              

@@ -1,0 +1,65 @@
+#include  "bsp_pre4.h"
+
+              MODULE     API
+              PUBLIC     Func1,Func2,Func3
+              EXTERN     SysConfig,PRINTLeds,CLEARLeds
+              EXTERN     val0,val1
+              
+;---------------------------------------------------------------             
+             RSEG       CODE
+;---------------------------------------------------------------  
+Func1        mov.b     #20, R6
+subloop1     push      val0
+             call      #PRINTLeds
+
+             inc.b     val0
+             cmp       0xFF, val0
+             jnz       L1
+             mov       #0,val0
+L1           call      #delay05
+             dec.b     R6
+             JNZ       subloop1
+             RET
+             
+;---------------------------------------------------------------             
+Func2        mov.b     #14, R6
+subloop2     push      val1
+             call      #PRINTLeds
+             rla       val1
+             cmp       #0x0100, val1
+             jnz       L2
+             mov.b     #1,val1
+L2           call      #delay05
+             dec.b     R6
+             JNZ       subloop2
+             RET
+;---------------------------------------------------------------              
+Func3        mov.b   #0xFF,SCOPE
+             call    #Delay1
+             mov.b   #0x00,SCOPE
+             call    #Delay0 
+             jmp     Func3
+             
+;---------------------------Delays------------------------------------
+delay05      mov.w       #5,R13    
+L5           mov.w       #32767,R15
+L6           dec.w       R15 
+             jnz         L6
+             dec.w       R13 
+             jnz         L5
+             ret   
+             
+Delay1       mov.w   #59,R15              
+L3           dec.w   R15                     
+             jnz     L3                                    
+             ret
+                
+Delay0       mov.w   #20,R14              
+L4           dec.w   R14                     
+             jnz     L4                                    
+             ret
+;---------------------------------------------------------------              
+             ENDMOD 
+             END
+;--------------------------------------------------------------- 
+           

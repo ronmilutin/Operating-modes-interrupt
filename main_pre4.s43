@@ -1,0 +1,59 @@
+#include  "bsp_pre4.h"
+
+              NAME       Main
+              PUBLIC     Main
+              PUBLIC     State,val0,val1,state0
+              EXTERN     Func1,Func2,Func3,PORT2_ISR,SysConfig,CLEARLeds
+              
+;--------------------------------------------------------------- 
+              ORG 0x0200
+State         DW         0
+val0          DW         0
+val1          DW         1
+              
+;---------------------------------------------------------------              
+              RSEG   CSTACK
+              RSEG   CODE
+;---------------------------------------------------------------   
+Main          mov.w   #SFE(CSTACK),SP                  ; Initialize stackpointer
+StopWDT       mov.w   #WDTPW+WDTHOLD,&WDTCTL  
+              call    #SysConfig
+              
+;-----------------------FSM_loop-------------------------------                           
+state0       cmp     #0,State         ;check if state0           
+             jnz     state1
+             call    #CLEARLeds
+             bis.w   #CPUOFF+GIE,SR 
+
+state1       cmp     #1,State         ;check if state1
+             jnz     state2
+             DINT             
+             call    #Func1           ;infinite function  
+             EINT
+             clr.b   PB_IFG
+             mov     #0,State
+             
+state2       cmp     #2,State         ;check if state2
+             jnz     state3
+             DINT             
+             call    #Func2           ;infinite function
+             EINT
+             clr.b   PB_IFG
+             mov     #0,State
+             
+state3       cmp     #3,State         ;check if state3
+             jnz     state0   
+             EINT
+             call    #Func3           ;infinite function
+            
+             jmp     state0
+     
+;---------------------------------------------------------------           
+              COMMON  INTVEC     ; Interrupt Vectors
+;--------------------------------------------------------------- 
+              ORG     PORT2_VECTOR            ;PORT2 Interrupt Vector Address 0xFFE2
+              DW      PORT2_ISR
+              ORG     RESET_VECTOR 
+              DW      Main
+              END            
+;---------------------------------------------------------------  

@@ -1,0 +1,24 @@
+#include  "bsp_pre4.h"
+
+              MODULE     BSP
+              PUBLIC     GPIOconfig  
+              
+;---------------------------------------------------------------               
+              RSEG       CODE
+;---------------------------------------------------------------           
+GPIOconfig
+         bis.b   #0xFF,ledDIR    ;output leds
+         mov.b   #0x00,ledPORT         
+           
+         bic.b   #0x8f, PB_SEL   
+         bic.b   #0x0f, PB_DIR   ;PB input p2.0-3
+         bis.b   #0x80, PB_DIR   ;SCOPE output p2.7
+         bis.b   #0x03, PB_IES
+         bis.b   #0x0f, PB_IE
+         bic.b   #0x0f, PB_IFG   ;clear IFG
+         
+         ret
+;---------------------------------------------------------------          
+         ENDMOD
+         END
+;--------------------------------------------------------------- 
